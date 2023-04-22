@@ -11,7 +11,7 @@ class ElectraArt(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix="/",
         intents = discord.Intents(message_content=True, guilds=True, guild_messages=True, members=True, guild_reactions=True, guild_typing=True, dm_messages=False, dm_reactions=False),
-        application_id = 1072739308999553194)
+        application_id = your_discord_bot_app_id_here)
     
     async def setup_hook(self) -> None:
         await self.load_extension(f"cogs.baseline")
