@@ -1,0 +1,42 @@
+variables:
+  DOCKER_DRIVER: overlay2
+
+stages:
+  - build
+  - deploy
+
+#before_script:
+  #- apk upgrade --update-cache --available && \
+  #  apk add openssl && \
+  #  rm -rf /var/cache/apk/*
+  #- openssl s_client -connect $CI_REGISTRY_HOST -showcerts </dev/null 2>/dev/null | sed -e '/-----BEGIN/,/-----END/!d' | tee "/usr/local/share/ca-certificates/ca.crt" >/dev/null && update-ca-certificates
+  #- cp registry-ca.crt /usr/local/share/ca-certificates/ca.crt
+  #- update-ca-certificates
+
+before_script:
+  - echo $CI_REGISTRY_PASS | docker login $CI_REGISTRY_HOST -u $CI_REGISTRY_USER --password-stdin
+
+
+build:
+  stage: build
+  image:
+    name: docker:latest
+  services:
+  - docker:dind
+  tags:
+    - docker
+  script:
+    - docker-compose build
+    - docker-compose push
+
+deploy:
+  stage: deploy
+  image:
+    name: docker
+  services:
+  - docker:dind
+  tags:
+    - docker
+  script:
+    - docker-compose --version
+    - docker-compose up -d

@@ -1,0 +1,46 @@
+services:
+  electraart_discord_bot:
+    image: "${CI_REGISTRY_HOST}/cjhackerz/electraart:latest"
+    build: .
+    container_name: electraart-discord-bot
+    restart: always
+    environment:
+      - DISCORD_BOT_TOKEN=${CI_DISCORD_BOT_TOKEN}
+      - OPENAI_API_KEY=${CI_OPENAI_API_KEY}
+      - DB_API_ENDPOINT_URL=${CI_DB_API_ENDPOINT}
+      - VULTR_OBJECT_STOR_ACCESS_KEY=${CI_VULTR_OBJECT_STOR_ACCESS_KEY}
+      - VULTR_OBJECT_STOR_SECRET_KEY=${CI_VULTR_OBJECT_STOR_SECRET_KEY}
+      - VULTR_OBJECT_STOR_NAME=${CI_VULTR_OBJECT_STOR_NAME}
+
+    entrypoint: ./docker-entrypoint.sh
+  electraart_dotnet_api:
+    image: "${CI_REGISTRY_HOST}/cjhackerz/electraart-api:latest"
+    build:
+      context: ./DB_API
+      dockerfile: ./Dockerfile
+    container_name: electraart-dotnet-api
+    restart: always
+    environment:
+      - NEO4J_USERNAME=${CI_NEO4J_USERNAME}
+      - NEO4J_PASSWORD=${CI_NEO4J_PASSWORD}
+      - NEO4J_URI=${CI_NEO4J_URI}
+    expose:
+      - 80
+    ports:
+      - 6080:80
+    depends_on:
+      - electraart_db
+  electraart_db:
+    image: neo4j:latest
+    container_name: electraart-neo4j-db
+    restart: always
+    environment:
+      - NEO4J_AUTH=${CI_NEO4J_USERNAME}/${CI_NEO4J_PASSWORD}
+      - NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
+    expose:
+      - 7687
+    ports:
+      - 6687:7687
+    volumes:
+      - /data
+      - /logs
